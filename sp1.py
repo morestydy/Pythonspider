@@ -35,3 +35,5 @@ for pages in range(1,10):
         movies_data = movies_data._append(movie_record,ignore_index=True)
 movies_data.to_excel('movies.xlsx', index=False)
 
+
+

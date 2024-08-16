@@ -32,7 +32,7 @@ import re
 # movies=pd.DataFrame(columns=['title','score','link'])
 movies_data=pd.DataFrame(columns=['title','score','link'])
 # movie_record = {}
-for pages in range(1,4):
+for pages in range(1,10):
     headers = {
         'UserAgent':UserAgent().random
     }
@@ -47,9 +47,9 @@ for pages in range(1,4):
         safe_title = re.sub(r'[<>:"/\\|?*\x00-\x1F]', '', title)
         print(f'pic:{link},title:{safe_title},score:{score}')
         # 图片下载
-        # img_content = requests.get(link,headers=headers).content
-        # with open(f'pic\\{safe_title}.jpg',mode='wb') as f:
-        #     f.write(img_content)
+        img_content = requests.get(link,headers=headers).content
+        with open(f'pic\\{safe_title}.jpg',mode='wb') as f:
+            f.write(img_content)
         movie_record = {
             'title': safe_title,
             'score': score.strip(),
