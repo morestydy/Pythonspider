@@ -11,7 +11,7 @@ movies_data=pd.DataFrame(columns=['title','score','link'])
 # movie_record = {}
 for pages in range(1,10):
     headers = {
-        'UserAgent':UserAgent().random
+        'User-Agent':UserAgent().random
     }
     url=r'https://ssr1.scrape.center/page/'+str(pages)
     response = requests.get(url,headers=headers)
