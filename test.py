@@ -28,7 +28,6 @@
 # import re
 
 
-
 # movies=pd.DataFrame(columns=['title','score','link'])
 # movies_data=pd.DataFrame(columns=['title','score','link'])
 # # movie_record = {}
@@ -417,62 +416,111 @@
 #     print(driver.page_source)
 # finally:
 #     driver.close()
+######################################### 从https://pic.netbian.com/index_2.html下载图片
+# from selenium import webdriver
+# from selenium.webdriver import Keys
+# from selenium.webdriver.common.by import By
+# from selenium.webdriver.support.ui import WebDriverWait
+# import requests
+# import time
+# from fake_useragent import UserAgent
+# from bs4 import BeautifulSoup
+# import pandas as pd
+# import re
 
+# pictures = pd.DataFrame(columns=['title','link'])
+
+# for page in range(2,11):
+#     url = f'https://pic.netbian.com/index_{page}.html'
+#     opt = webdriver.ChromeOptions()
+#     # opt.add_experimental_option('detach',True)
+#     driver = webdriver.Chrome()
+#     driver.get(url)
+#     driver.maximize_window()
+#     # print(driver.page_source)
+#     # with open('netbian.txt','w',encoding='utf-8') as f:
+#     #     f.write(driver.page_source)
+#     # with open('netbian.txt','r',encoding='utf-8') as f:
+#     #     source = f.read()
+#     # soup = BeautifulSoup(driver.page_source,'html.parser')
+#     soup = BeautifulSoup(driver.page_source,'html.parser')
+#     # print(soup)
+#     headers = {
+#         'User-Agent':UserAgent().random
+#     }
+#     pic_list = soup.find('div',attrs={'class':'slist'})
+#     pics_list = pic_list.find('ul',attrs={'class':'clearfix'})
+#     # print(pics_list)
+#     netbians = pics_list.find_all('li')
+
+#     for netbian in netbians:
+#         try:
+#         # print(netbian)
+#             link = netbian.a.img['src']
+#             pic_link = 'https://pic.netbian.com/'+link
+#             # print(pic_link)
+#             title = netbian.a.b.string
+#             # print(title)
+#             pic_info = {
+#                 'link':pic_link,
+#                 'title':title.strip(),
+#             }
+#             pictures = pictures._append(pic_info,ignore_index = True)
+#             print('写入:'+title+'src='+pic_link)
+#             safe_title = re.sub(r'[<>:"/\\|?*]', '', title)  # 清理不合法字符
+#             img_content = requests.get(pic_link,headers=headers).content
+#             with open(f'netbian\\{safe_title}.jpg','wb') as f:
+#                 f.write(img_content)
+#                 print(f'图片{title}写入')
+#         except TypeError:
+#             break
+# pictures.to_excel('netbian.xlsx',index=False)
+
+
+import ssl
 from selenium import webdriver
-from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-import requests
+from selenium.webdriver.common.keys import Keys
 import time
+import requests
 from fake_useragent import UserAgent
-from bs4 import BeautifulSoup
-import pandas as pd
-import re
+# 创建一个未验证的上下文，避免SSL证书的问题
+context = ssl.create_default_context()
+context.check_hostname = False
+context.verify_mode = ssl.CERT_NONE
 
-pictures = pd.DataFrame(columns=['title','link'])
+url = "https://flickr.com/photos/coloraestheticist/"
+opt = webdriver.ChromeOptions()
+opt.add_experimental_option("detach", True)
+driver = webdriver.Chrome(options=opt)
+driver.maximize_window()
+headers = {'User-Agent':UserAgent().random}
 
-for page in range(2,11):
-    url = f'https://pic.netbian.com/index_{page}.html'
-    opt = webdriver.ChromeOptions()
-    # opt.add_experimental_option('detach',True)
-    driver = webdriver.Chrome()
-    driver.get(url)
-    driver.maximize_window()
-    # print(driver.page_source)
-    # with open('netbian.txt','w',encoding='utf-8') as f:
-    #     f.write(driver.page_source)
-    # with open('netbian.txt','r',encoding='utf-8') as f:
-    #     source = f.read()
-    # soup = BeautifulSoup(driver.page_source,'html.parser')
-    soup = BeautifulSoup(driver.page_source,'html.parser')
-    # print(soup)
-    headers = {
-        'User-Agent':UserAgent().random
-    }
-    pic_list = soup.find('div',attrs={'class':'slist'})
-    pics_list = pic_list.find('ul',attrs={'class':'clearfix'})
-    # print(pics_list)
-    netbians = pics_list.find_all('li')
-
-    for netbian in netbians:
-        try:
-        # print(netbian)
-            link = netbian.a.img['src']
-            pic_link = 'https://pic.netbian.com/'+link
-            # print(pic_link)
-            title = netbian.a.b.string
-            # print(title)
-            pic_info = {
-                'link':pic_link,
-                'title':title.strip(),
-            }
-            pictures = pictures._append(pic_info,ignore_index = True)
-            print('写入:'+title+'src='+pic_link)
-            safe_title = re.sub(r'[<>:"/\\|?*]', '', title)  # 清理不合法字符
-            img_content = requests.get(pic_link,headers=headers).content
-            with open(f'netbian\\{safe_title}.jpg','wb') as f:
-                f.write(img_content)
-                print(f'图片{title}写入')
-        except TypeError:
+for page in range(1,2):
+    driver.get(f'{url}page{page}')
+    while True:
+        # 滑动到最底部，加载出所有图片
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(3)
+        # 检测是不是到最底部了
+        if driver.execute_script(
+            "return window.innerHeight + window.pageYOffset >= document.body.offsetHeight;"
+        ):
             break
-pictures.to_excel('netbian.xlsx',index=False)
+    pic_list = driver.find_elements(By.CLASS_NAME, "overlay")
+    for pic in pic_list:
+        link = pic.get_attribute('href')
+        print(link)
+        driver.get(link+"sizes/o/")    #https://www.flickr.com/photos/coloraestheticist/53802407077/sizes/o/
+        time.sleep(1)
+        img_url = driver.find_element(By.CSS_SELECTOR,'#allsizes-photo > img').get_attribute('src')
+        image_filename = img_url.split("/")[-1]
+        # driver.get(img_url)
+        response = requests.get(img_url,headers=headers)
+        with open(f'flickrpic\\{image_filename}.jpg','wb') as f:
+            f.write(response.content)
+        time.sleep(3)
+
+
+
+
